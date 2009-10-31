@@ -1,0 +1,65 @@
+#!/bin/sh
+
+set -e
+
+if test -f ./ik.config; then
+    . ./ik.config
+else
+    echo "Run configure first."
+    exit
+fi
+
+
+TARGET=ik
+OCAMLBUILD=ocamlbuild
+OCAMLBUILD_FLAGS="-classic-display"
+BUILD=byte
+
+ocb()
+{
+    $OCAMLBUILD $OCAMLBUILD_FLAGS $*
+}
+
+install()
+{
+    mkdir -p $ik_prefix
+    mkdir -p $ik_prefix/lib
+    mkdir -p $ik_prefix/etc
+    mkdir -p ${ik_server_db%/*}
+    mkdir -p ${ik_log_dir}
+    cp -f _build/src/ik.cma $ik_lib_byte
+    cp -f _build/src/ik.cmxs $ik_lib_native
+    cp -f src/ik-byte.conf $ik_prefix/etc
+    cp -f src/ik-native.conf $ik_prefix/etc
+}
+
+remove()
+{
+    rm -f $ik_lib_byte
+    rm -f $ik_lib_native
+    rm -f $ik_prefix/etc/ik-*.conf
+    rm -f $ik_server_db
+}
+
+rule() {
+    case $1 in
+        clean)   ocb -clean;;
+        config)  ./configure;;
+        native)  ocb $TARGET-native.otarget;;
+        byte)    ocb $TARGET.otarget;;
+        all)     ocb $TARGET.otarget;;
+        depend)  echo "Not needed.";;
+        install) install;;
+        remove)  remove;;
+        *)       echo "Unknown action $1";;
+    esac;
+}
+
+if [ $# -eq 0 ]; then
+    rule all
+else
+    while [ $# -gt 0 ]; do
+        rule $1;
+        shift
+    done
+fi

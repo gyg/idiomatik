@@ -1,0 +1,67 @@
+#!/bin/sh
+
+ocaml=`which ocaml`
+ocaml_prefix=${ocaml%/bin/ocaml}
+
+#ocsigen_prefix=$ocaml_prefix
+ocsigen_prefix="$HOME/Development/ocsigen-1.2.2"
+ocsigen_metas_dir="$ocsigen_prefix/lib/ocsigen/METAS"
+ocsigen_confs_dir="$ocsigen_prefix/etc/ocsigen/conf.d"
+
+ik_prefix="$HOME/Development/ik"
+ik_user=`whoami`
+ik_group=`id -ng`
+ik_port=8080
+ik_data_dir="$ik_prefix/var/lib"
+ik_log_dir="$ik_prefix/var/log"
+ik_server_db="$ik_prefix/data/ik.db"
+ik_lib_byte="$ik_prefix/lib/ik.cma"
+ik_lib_native="$ik_prefix/lib/ik.cmxs"
+
+cat << EOF
+Configuration summary
+IK:
+    prefix............ $ik_prefix
+    user.............. $ik_user
+    group............. $ik_group
+    port.............. $ik_port
+    log directory..... $ik_log_dir
+    data directory.... $ik_data_dir
+    server database... $ik_server_db
+    library (byte).... $ik_lib_byte
+    library (native).. $ik_lib_native
+EOF
+
+cat << EOF > ik.config
+ik_prefix=$ik_prefix
+ik_lib_byte=$ik_lib_byte
+ik_lib_native=$ik_lib_native
+ik_user=$ik_user
+ik_group=$ik_group
+ik_port=$ik_port
+ik_log_dir=$ik_log_dir
+ik_data_dir=$ik_data_dir
+ik_server_db=$ik_server_db
+ik_lib_byte=$ik_lib_byte
+ik_lib_native=$ik_lib_native
+EOF
+
+ik_conf()
+{
+    sed \
+        -e "s|__IK_PREFIX__|$ik_prefix|g"           \
+        -e "s|__IK_PORT__|$ik_port|g"               \
+        -e "s|__IK_USER__|$ik_user|g"               \
+        -e "s|__IK_GROUP__|$ik_group|g"             \
+        -e "s|__IK_LOGDIR__|$ik_log_dir|g"          \
+        -e "s|__IK_DATADIR__|$ik_data_dir|g"        \
+        -e "s|__IK_SERVER_DB__|$ik_server_db|g"     \
+        -e "s|__IK_LIB__|$2|g"                      \
+        -e "s|__OCSIGEN_METAS_DIR__|$ocsigen_metas_dir|g" \
+        -e "s|__OCSIGEN_CONFS_DIR__|$ocsigen_confs_dir|g" \
+        src/ik.conf.in > \
+        src/ik-$1.conf
+}
+
+ik_conf byte $ik_lib_byte
+ik_conf native $ik_lib_native

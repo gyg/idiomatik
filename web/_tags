@@ -1,0 +1,4 @@
+<**/*.ml*> : dtypes
+<src/*.ml> : pkg_threads, pkg_ocsigen, pkg_lwt
+<src/[ls]*.cmx>: for-pack(Ik)
+<src/init.cmx>: for-pack(Ik)
